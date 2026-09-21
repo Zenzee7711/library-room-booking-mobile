@@ -100,7 +100,19 @@ server/database/
 
 - Node.js 18 or newer
 - MySQL 8 or MariaDB 10.4 (XAMPP works)
-- Flutter 3.8 or newer
+- Flutter 3.35 or newer
+- **JDK 21** for the Android build, and an Android SDK with platform 36
+
+On the JDK: recent Android Studio releases bundle Java 25, which Gradle 8.x
+refuses to run on. If the Android build fails complaining about the Java
+version, point Flutter at a JDK 21 instead:
+
+```bash
+flutter config --jdk-dir="/path/to/jdk-21"
+```
+
+The Android toolchain this builds against is Gradle 8.14.3, Android Gradle
+Plugin 8.11.1 and Kotlin 2.3.20.
 
 ### 1. Start the API
 
