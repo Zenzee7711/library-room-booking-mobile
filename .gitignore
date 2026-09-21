@@ -1,0 +1,26 @@
+# Node
+node_modules/
+.env
+.env.local
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Runtime uploads
+server/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+__MACOSX/
+.vscode/
+.idea/
+*.iml
