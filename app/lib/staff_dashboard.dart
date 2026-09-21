@@ -59,7 +59,10 @@ class _StaffDashboardState extends State<StaffDashboard> {
   Future<void> _fetchMe() async {
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/common/user_auth'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
@@ -70,14 +73,19 @@ class _StaffDashboardState extends State<StaffDashboard> {
           if (mounted && name.isNotEmpty) setState(() => _staffName = name);
         }
       }
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   Future<void> _fetchSummary() async {
     setState(() => _loading = true);
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/common/rooms/availability?date=$_todayYMD');
-      final resp = await http.get(url, headers: _authHeaders())
+      final url = Uri.parse(
+        '${ApiConfig.baseUrl}/common/rooms/availability?date=$_todayYMD',
+      );
+      final resp = await http
+          .get(url, headers: _authHeaders())
           .timeout(const Duration(seconds: 12));
 
       if (resp.statusCode != 200) {
@@ -112,8 +120,11 @@ class _StaffDashboardState extends State<StaffDashboard> {
           final s = (v ?? '').toString();
           if (s == 'available') {
             available++;
-          } else if (s == 'pending') pending++;
-          else if (s == 'reserved') reserved++;
+          } else if (s == 'pending') {
+            pending++;
+          } else if (s == 'reserved') {
+            reserved++;
+          }
           // 'passed' is ignored for dashboard counts
         }
       }
@@ -121,9 +132,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
       if (mounted) {
         setState(() {
           _countAvailable = available;
-          _countPending   = pending;
-          _countReserved  = reserved;
-          _countDisabled  = disabled;
+          _countPending = pending;
+          _countReserved = reserved;
+          _countDisabled = disabled;
         });
       }
     } on TimeoutException {
@@ -141,9 +152,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
     if (!mounted) return;
     setState(() {
       _countAvailable = 0;
-      _countPending   = 0;
-      _countReserved  = 0;
-      _countDisabled  = 0;
+      _countPending = 0;
+      _countReserved = 0;
+      _countDisabled = 0;
     });
   }
 
@@ -165,8 +176,20 @@ class _StaffDashboardState extends State<StaffDashboard> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         boxShadow: hasItems
-            ? [BoxShadow(color: color.withOpacity(0.15), blurRadius: 12, spreadRadius: 2)]
-            : [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 2))],
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Card(
         color: Colors.white,
@@ -182,8 +205,22 @@ class _StaffDashboardState extends State<StaffDashboard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(title, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w500)),
-              Text('$count', style: const TextStyle(color: kNavy, fontSize: 40, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '$count',
+                style: const TextStyle(
+                  color: kNavy,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -207,7 +244,13 @@ class _StaffDashboardState extends State<StaffDashboard> {
           decoration: BoxDecoration(
             color: Colors.black87,
             borderRadius: BorderRadius.circular(28),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3))],
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -217,7 +260,11 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 onPressed: () => Navigator.maybePop(context),
               ),
               IconButton(
-                icon: const Icon(Icons.home_filled, color: Colors.white, size: 28),
+                icon: const Icon(
+                  Icons.home_filled,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 onPressed: () async {
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -225,8 +272,13 @@ class _StaffDashboardState extends State<StaffDashboard> {
                       content: const Text('You are already on the Home page'),
                       duration: const Duration(milliseconds: 1200),
                       behavior: SnackBarBehavior.floating,
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   );
                   if (!_loading) await _fetchSummary(); // force refresh
@@ -235,14 +287,24 @@ class _StaffDashboardState extends State<StaffDashboard> {
               IconButton(
                 icon: const Icon(Icons.search, color: Colors.white, size: 28),
                 onPressed: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StaffBrowsing()));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StaffBrowsing()),
+                  );
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.calendar_today, color: Colors.white, size: 28),
+                icon: const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 onPressed: () {
                   // standard bottom nav: go to staff history
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffHistory()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StaffHistory()),
+                  );
                 },
               ),
             ],
@@ -257,7 +319,10 @@ class _StaffDashboardState extends State<StaffDashboard> {
           Container(
             decoration: const BoxDecoration(
               color: kNavy,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
               border: Border(bottom: BorderSide(color: Colors.black, width: 2)),
             ),
             width: double.infinity,
@@ -287,7 +352,8 @@ class _StaffDashboardState extends State<StaffDashboard> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: ', ${_staffName.isNotEmpty ? _staffName : 'Staff'}',
+                                  text:
+                                      ', ${_staffName.isNotEmpty ? _staffName : 'Staff'}',
                                   style: const TextStyle(
                                     fontSize: 29,
                                     color: Colors.white,
@@ -296,12 +362,19 @@ class _StaffDashboardState extends State<StaffDashboard> {
                               ],
                             ),
                           ),
-                          const Text("Staff's Dashboard", style: TextStyle(fontSize: 26, color: Colors.white)),
+                          const Text(
+                            "Staff's Dashboard",
+                            style: TextStyle(fontSize: 26, color: Colors.white),
+                          ),
                         ],
                       ),
                       IconButton(
                         onPressed: () => showLogoutDialog(context),
-                        icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
                       ),
                     ],
                   ),
@@ -310,7 +383,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 Center(
                   child: Text(
                     "Dashboard shows today's room slot summary.",
-                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -334,10 +409,26 @@ class _StaffDashboardState extends State<StaffDashboard> {
                   mainAxisSpacing: 10,
                   childAspectRatio: 1.05,
                   children: [
-                    _buildStatusCard(title: 'Available', count: _countAvailable, color: kGreen),
-                    _buildStatusCard(title: 'Pending',   count: _countPending,   color: Colors.orange),
-                    _buildStatusCard(title: 'Reserved',  count: _countReserved,  color: Colors.blue),
-                    _buildStatusCard(title: 'Disabled',  count: _countDisabled,  color: kRed),
+                    _buildStatusCard(
+                      title: 'Available',
+                      count: _countAvailable,
+                      color: kGreen,
+                    ),
+                    _buildStatusCard(
+                      title: 'Pending',
+                      count: _countPending,
+                      color: Colors.orange,
+                    ),
+                    _buildStatusCard(
+                      title: 'Reserved',
+                      count: _countReserved,
+                      color: Colors.blue,
+                    ),
+                    _buildStatusCard(
+                      title: 'Disabled',
+                      count: _countDisabled,
+                      color: kRed,
+                    ),
                   ],
                 ),
               ),

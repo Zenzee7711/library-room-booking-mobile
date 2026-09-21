@@ -60,7 +60,10 @@ class _StaffHistoryState extends State<StaffHistory>
   Future<void> _fetchMe() async {
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/common/user_auth'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
@@ -77,8 +80,21 @@ class _StaffHistoryState extends State<StaffHistory>
   String _formatYMD(String ymd) {
     try {
       final d = DateTime.parse(ymd);
-      const w = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const w = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const m = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       final wd = w[(d.weekday + 6) % 7];
       final mo = m[d.month - 1];
       return '$wd, $mo ${d.day}';
@@ -94,7 +110,10 @@ class _StaffHistoryState extends State<StaffHistory>
     setState(() => _loadingPending = true);
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/staff/bookings/pending'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/staff/bookings/pending'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 12));
 
       if (resp.statusCode != 200) {
@@ -115,26 +134,28 @@ class _StaffHistoryState extends State<StaffHistory>
 
       for (final b in rows) {
         final m = b as Map;
-        final roomName  = (m['room_name'] ?? 'Room').toString();
-        final dateYMD   = (m['booking_date'] ?? '').toString();
-        final start     = (m['start_time'] ?? '').toString();
-        final end       = (m['end_time'] ?? '').toString();
-        final student   = (m['booked_by_name'] ?? '').toString();
+        final roomName = (m['room_name'] ?? 'Room').toString();
+        final dateYMD = (m['booking_date'] ?? '').toString();
+        final start = (m['start_time'] ?? '').toString();
+        final end = (m['end_time'] ?? '').toString();
+        final student = (m['booked_by_name'] ?? '').toString();
 
         out.add({
           'booking_id': m['booking_id'],
           'room': roomName,
           'date': _formatYMD(dateYMD),
-          'time': '${start.substring(0,5)} - ${end.substring(0,5)}',
-          'status': 0,            // 0 used for pending/rejected in your UI
-          'approver': '',         // empty => pending
+          'time': '${start.substring(0, 5)} - ${end.substring(0, 5)}',
+          'status': 0, // 0 used for pending/rejected in your UI
+          'approver': '', // empty => pending
           'booked_by': student,
           '_order_id': (m['booking_id'] ?? 0) as int,
         });
       }
 
       // newest first by id
-      out.sort((a, b) => (b['_order_id'] as int).compareTo(a['_order_id'] as int));
+      out.sort(
+        (a, b) => (b['_order_id'] as int).compareTo(a['_order_id'] as int),
+      );
 
       if (mounted) setState(() => _pending = out);
     } on TimeoutException {
@@ -151,7 +172,10 @@ class _StaffHistoryState extends State<StaffHistory>
     setState(() => _loadingHistory = true);
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/staff/bookings/history'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/staff/bookings/history'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 12));
 
       if (resp.statusCode != 200) {
@@ -172,22 +196,23 @@ class _StaffHistoryState extends State<StaffHistory>
 
       for (final b in rows) {
         final m = b as Map;
-        final statusStr = (m['booking_status'] ?? '').toString(); // Approved | Rejected
+        final statusStr = (m['booking_status'] ?? '')
+            .toString(); // Approved | Rejected
         final isApproved = statusStr == 'Approved';
 
-        final roomName  = (m['room_name'] ?? 'Room').toString();
-        final dateYMD   = (m['booking_date'] ?? '').toString();
-        final start     = (m['start_time'] ?? '').toString();
-        final end       = (m['end_time'] ?? '').toString();
-        final approver  = (m['approver_name'] ?? '').toString();
-        final student   = (m['booked_by_name'] ?? '').toString();
-        final reason    = (m['reject_reason'] ?? '').toString();
+        final roomName = (m['room_name'] ?? 'Room').toString();
+        final dateYMD = (m['booking_date'] ?? '').toString();
+        final start = (m['start_time'] ?? '').toString();
+        final end = (m['end_time'] ?? '').toString();
+        final approver = (m['approver_name'] ?? '').toString();
+        final student = (m['booked_by_name'] ?? '').toString();
+        final reason = (m['reject_reason'] ?? '').toString();
 
         out.add({
           'booking_id': m['booking_id'],
           'room': roomName,
           'date': _formatYMD(dateYMD),
-          'time': '${start.substring(0,5)} - ${end.substring(0,5)}',
+          'time': '${start.substring(0, 5)} - ${end.substring(0, 5)}',
           'status': isApproved ? 1 : 0, // 1 approved, 0 rejected
           'approver': approver,
           'booked_by': student,
@@ -197,7 +222,9 @@ class _StaffHistoryState extends State<StaffHistory>
       }
 
       // newest first by id
-      out.sort((a, b) => (b['_order_id'] as int).compareTo(a['_order_id'] as int));
+      out.sort(
+        (a, b) => (b['_order_id'] as int).compareTo(a['_order_id'] as int),
+      );
 
       if (mounted) setState(() => _history = out);
     } on TimeoutException {
@@ -216,17 +243,23 @@ class _StaffHistoryState extends State<StaffHistory>
   }
 
   Widget _buildEmptyState(String title) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text('$title is empty', style: TextStyle(fontSize: 18, color: Colors.grey[600])),
-            const SizedBox(height: 8),
-            Text('No ${title.toLowerCase()} bookings found', style: TextStyle(color: Colors.grey[500])),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
+        const SizedBox(height: 16),
+        Text(
+          '$title is empty',
+          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
         ),
-      );
+        const SizedBox(height: 8),
+        Text(
+          'No ${title.toLowerCase()} bookings found',
+          style: TextStyle(color: Colors.grey[500]),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildBookingCard(Map<String, dynamic> b) {
     final int status = b['status'] as int;
@@ -269,7 +302,10 @@ class _StaffHistoryState extends State<StaffHistory>
                 style: const TextStyle(fontSize: 16, color: Colors.black),
                 children: [
                   const TextSpan(text: 'Session in '),
-                  TextSpan(text: b['room'], style: const TextStyle(color: Colors.orange)),
+                  TextSpan(
+                    text: b['room'],
+                    style: const TextStyle(color: Colors.orange),
+                  ),
                 ],
               ),
             ),
@@ -320,7 +356,8 @@ class _StaffHistoryState extends State<StaffHistory>
                     style: const TextStyle(fontSize: 14, color: Colors.black),
                     children: [
                       TextSpan(text: statusText),
-                      if (!isPending && (b['approver'] as String).isNotEmpty) ...[
+                      if (!isPending &&
+                          (b['approver'] as String).isNotEmpty) ...[
                         const TextSpan(text: ' by '),
                         TextSpan(
                           text: (b['approver'] ?? '').toString(),
@@ -341,12 +378,19 @@ class _StaffHistoryState extends State<StaffHistory>
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline, size: 20, color: Colors.redAccent),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Colors.redAccent,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Reason: ${b['reason']}',
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                 ],
@@ -376,20 +420,39 @@ class _StaffHistoryState extends State<StaffHistory>
           decoration: BoxDecoration(
             color: Colors.black87,
             borderRadius: BorderRadius.circular(28),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3))],
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.maybePop(context)),
               IconButton(
-                icon: const Icon(Icons.home_filled, color: Colors.white, size: 28),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffDashboard())),
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                onPressed: () => Navigator.maybePop(context),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.home_filled,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StaffDashboard()),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.search, color: Colors.white, size: 28),
                 onPressed: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StaffBrowsing()));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StaffBrowsing()),
+                  );
                 },
               ),
               IconButton(
@@ -398,11 +461,18 @@ class _StaffHistoryState extends State<StaffHistory>
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('You are already on the Booking page'),
+                      content: const Text(
+                        'You are already on the Booking page',
+                      ),
                       duration: const Duration(milliseconds: 1200),
                       behavior: SnackBarBehavior.floating,
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   );
                 },
@@ -419,7 +489,10 @@ class _StaffHistoryState extends State<StaffHistory>
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFF003366),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
               border: Border(bottom: BorderSide(color: Colors.black, width: 2)),
             ),
             width: double.infinity,
@@ -459,12 +532,19 @@ class _StaffHistoryState extends State<StaffHistory>
                               ],
                             ),
                           ),
-                          const Text('Bookings', style: TextStyle(fontSize: 25, color: Colors.white)),
+                          const Text(
+                            'Bookings',
+                            style: TextStyle(fontSize: 25, color: Colors.white),
+                          ),
                         ],
                       ),
                       IconButton(
                         onPressed: () => showLogoutDialog(context),
-                        icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
                       ),
                     ],
                   ),
@@ -504,21 +584,29 @@ class _StaffHistoryState extends State<StaffHistory>
                 _loadingPending
                     ? const Center(child: CircularProgressIndicator())
                     : (_pending.isEmpty
-                        ? _buildEmptyState('Pending')
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(top: 10, bottom: 100),
-                            itemCount: _pending.length,
-                            itemBuilder: (_, i) => _buildBookingCard(_pending[i]),
-                          )),
+                          ? _buildEmptyState('Pending')
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(
+                                top: 10,
+                                bottom: 100,
+                              ),
+                              itemCount: _pending.length,
+                              itemBuilder: (_, i) =>
+                                  _buildBookingCard(_pending[i]),
+                            )),
                 _loadingHistory
                     ? const Center(child: CircularProgressIndicator())
                     : (_history.isEmpty
-                        ? _buildEmptyState('History')
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(top: 10, bottom: 100),
-                            itemCount: _history.length,
-                            itemBuilder: (_, i) => _buildBookingCard(_history[i]),
-                          )),
+                          ? _buildEmptyState('History')
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(
+                                top: 10,
+                                bottom: 100,
+                              ),
+                              itemCount: _history.length,
+                              itemBuilder: (_, i) =>
+                                  _buildBookingCard(_history[i]),
+                            )),
               ],
             ),
           ),

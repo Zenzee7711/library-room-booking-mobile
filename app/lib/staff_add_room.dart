@@ -28,7 +28,6 @@ class StaffAddRoomPage extends StatefulWidget {
 }
 
 class _StaffAddRoomPageState extends State<StaffAddRoomPage> {
-
   final _secure = const FlutterSecureStorage();
   String? _jwt;
 
@@ -70,7 +69,10 @@ class _StaffAddRoomPageState extends State<StaffAddRoomPage> {
   Future<void> _fetchMe() async {
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/common/user_auth'), headers: _authJson())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authJson(),
+          )
           .timeout(const Duration(seconds: 8));
 
       if (resp.statusCode == 200) {
@@ -259,7 +261,8 @@ class _StaffAddRoomPageState extends State<StaffAddRoomPage> {
         }
       }
 
-      await _showSuccessThenBack(context);
+      if (!mounted) return;
+      await _showSuccessThenBack();
     } on TimeoutException {
       _toast('Timeout while creating room');
     } catch (e) {
@@ -584,7 +587,7 @@ class _StaffAddRoomPageState extends State<StaffAddRoomPage> {
     );
   }
 
-  Future<void> _showSuccessThenBack(BuildContext context) async {
+  Future<void> _showSuccessThenBack() async {
     showDialog(
       context: context,
       barrierDismissible: false,

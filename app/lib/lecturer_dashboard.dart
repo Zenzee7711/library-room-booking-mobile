@@ -61,7 +61,10 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
   Future<void> _fetchMe() async {
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/common/user_auth'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
@@ -71,13 +74,17 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
           if (mounted && fn.isNotEmpty) setState(() => username = 'Aj.$fn');
         }
       }
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   Future<void> _fetchSummary() async {
     setState(() => _loading = true);
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/common/rooms/availability?date=$_todayYMD');
+      final url = Uri.parse(
+        '${ApiConfig.baseUrl}/common/rooms/availability?date=$_todayYMD',
+      );
       final resp = await http
           .get(url, headers: _authHeaders())
           .timeout(const Duration(seconds: 12));
@@ -114,9 +121,12 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
           final s = (v ?? '').toString();
           if (s == 'available') {
             available++;
-          } else if (s == 'pending') pending++;
-          else if (s == 'reserved') reserved++;
-          // 'passed' not counted
+          } else if (s == 'pending') {
+            pending++;
+          } else if (s == 'reserved') {
+            reserved++;
+          }
+          // 'passed' is not counted
         }
       }
 
@@ -170,10 +180,18 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
         boxShadow: hasItems
             ? [
                 // subtle glow when count > 0
-                BoxShadow(color: color.withOpacity(0.15), blurRadius: 12, spreadRadius: 2),
+                BoxShadow(
+                  color: color.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
               ]
             : [
-                BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 2)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
               ],
       ),
       child: Card(
@@ -233,7 +251,11 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
             color: Colors.black87,
             borderRadius: BorderRadius.circular(28),
             boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
             ],
           ),
           child: Row(
@@ -244,7 +266,11 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                 onPressed: () => Navigator.maybePop(context),
               ),
               IconButton(
-                icon: const Icon(Icons.home_filled, color: Colors.white, size: 28),
+                icon: const Icon(
+                  Icons.home_filled,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 onPressed: () async {
                   // Surface the message, then reload so the list reflects the change.
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -253,8 +279,13 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                       content: const Text('You are already on the Home page'),
                       duration: const Duration(milliseconds: 1200),
                       behavior: SnackBarBehavior.floating,
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   );
                   if (!_loading) {
@@ -272,7 +303,11 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.calendar_today, color: Colors.white, size: 28),
+                icon: const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -325,7 +360,8 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: ', ${username.isNotEmpty ? username : 'Lecturer'}',
+                                  text:
+                                      ', ${username.isNotEmpty ? username : 'Lecturer'}',
                                   style: const TextStyle(
                                     fontSize: 29,
                                     color: Colors.white,
@@ -343,7 +379,11 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                       // Logout button
                       IconButton(
                         onPressed: () => showLogoutDialog(context),
-                        icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
                       ),
                     ],
                   ),
@@ -352,7 +392,9 @@ class _LecturerDashboardState extends State<LecturerDashboard> {
                 Center(
                   child: Text(
                     "Dashboard shows today's room status summary.",
-                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

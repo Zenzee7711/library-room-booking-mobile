@@ -98,11 +98,20 @@ class _SignInPageState extends State<SignInPage> {
           // route by role
           if (!mounted) return;
           if (role == 'staff') {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => StaffDashboard()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => StaffDashboard()),
+            );
           } else if (role == 'lecturer') {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LecturerDashboard()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => LecturerDashboard()),
+            );
           } else {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StudentBrowsing()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const StudentBrowsing()),
+            );
           }
           return;
         } else {
@@ -126,7 +135,6 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
 
     return Scaffold(
       body: Container(
@@ -207,94 +215,137 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-                        TextField(
-                          controller: _user,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.person_outline),
-                            hintText: 'Email',
-                            filled: true,
-                            fillColor: Colors.grey.shade300,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 40,
+                    ),
+                    // Scrollable so the form still fits when the keyboard is up
+                    // or the screen is short, matching the sign up page.
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          TextField(
+                            controller: _user,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.person_outline),
+                              hintText: 'Email',
+                              filled: true,
+                              fillColor: Colors.grey.shade300,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _pass,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            hintText: 'Password',
-                            filled: true,
-                            fillColor: Colors.grey.shade300,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _pass,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              hintText: 'Password',
+                              filled: true,
+                              fillColor: Colors.grey.shade300,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                              activeColor: Colors.white,
-                              checkColor: const Color(0xFF0E2A5D),
-                            ),
-                            const Text('Remember me', style: TextStyle(color: Colors.white, fontSize: 14)),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF0E2A5D),
-                            shadowColor: Colors.black,
-                            elevation: 10,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                          ),
-                          onPressed: _loading ? null : _attemptSignIn,
-                          child: _loading
-                              ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Text('SIGN IN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                        ),
-                        const SizedBox(height: 40),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SignUpPage()));
-                          },
-                          child: const Text.rich(
-                            TextSpan(
-                              text: "Don't have an Account? ",
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                              children: [
-                                TextSpan(
-                                  text: "Sign Up",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: Colors.white,
-                                    decorationThickness: 1,
-                                  ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _rememberMe,
+                                onChanged: (v) =>
+                                    setState(() => _rememberMe = v ?? false),
+                                activeColor: Colors.white,
+                                checkColor: const Color(0xFF0E2A5D),
+                              ),
+                              const Text(
+                                'Remember me',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF0E2A5D),
+                              shadowColor: Colors.black,
+                              elevation: 10,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 80,
+                                vertical: 16,
+                              ),
+                            ),
+                            onPressed: _loading ? null : _attemptSignIn,
+                            child: _loading
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'SIGN IN',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 40),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SignUpPage(),
+                                ),
+                              );
+                            },
+                            child: const Text.rich(
+                              TextSpan(
+                                text: "Don't have an Account? ",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: Colors.white,
+                                      decorationThickness: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

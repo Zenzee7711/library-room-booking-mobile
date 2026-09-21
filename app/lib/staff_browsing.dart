@@ -66,7 +66,10 @@ class _StaffBrowsingState extends State<StaffBrowsing> {
   Future<void> _fetchMe() async {
     try {
       final resp = await http
-          .get(Uri.parse('${ApiConfig.baseUrl}/common/user_auth'), headers: _authHeaders())
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authHeaders(),
+          )
           .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
@@ -134,7 +137,9 @@ class _StaffBrowsingState extends State<StaffBrowsing> {
       for (final r in (data['rooms'] as List)) {
         final name = (r as Map)['name']?.toString() ?? '';
         final desc = (r['description'] ?? '').toString();
-        final imageUrl = ApiConfig.resolveUrl((r['image_url'] ?? '').toString());
+        final imageUrl = ApiConfig.resolveUrl(
+          (r['image_url'] ?? '').toString(),
+        );
         final cap = (r['capacity'] ?? 0) is int
             ? (r['capacity'] as int)
             : int.tryParse('${r['capacity']}') ?? 0;
@@ -752,7 +757,7 @@ class _StaffBrowsingState extends State<StaffBrowsing> {
                             if (isDisabled || isFullyBookedToday) ...[
                               Positioned.fill(
                                 child: Container(
-                                  color: Colors.white.withOpacity(0.60),
+                                  color: Colors.white.withValues(alpha: 0.60),
                                 ),
                               ),
                               Positioned(
@@ -766,7 +771,9 @@ class _StaffBrowsingState extends State<StaffBrowsing> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.80),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.80,
+                                      ),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(

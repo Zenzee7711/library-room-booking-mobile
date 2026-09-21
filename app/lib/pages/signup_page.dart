@@ -37,7 +37,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Registers the account, stores the token the API returns, and moves on to
@@ -51,7 +53,11 @@ class _SignUpPageState extends State<SignUpPage> {
     final pass = _passController.text;
     final confirm = _confirmController.text;
 
-    if (email.isEmpty || first.isEmpty || last.isEmpty || pass.isEmpty || confirm.isEmpty) {
+    if (email.isEmpty ||
+        first.isEmpty ||
+        last.isEmpty ||
+        pass.isEmpty ||
+        confirm.isEmpty) {
       _snack('Please fill in all fields');
       return;
     }
@@ -112,7 +118,9 @@ class _SignUpPageState extends State<SignUpPage> {
     if (body.isEmpty) return 'Registration failed';
     try {
       final parsed = jsonDecode(body);
-      if (parsed is Map && parsed['error'] != null) return parsed['error'].toString();
+      if (parsed is Map && parsed['error'] != null) {
+        return parsed['error'].toString();
+      }
     } catch (_) {
       // Not JSON.
     }
@@ -214,8 +222,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             hintText: 'Email',
                             filled: true,
                             fillColor: Colors.grey.shade300,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 18),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
@@ -231,13 +240,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               child: TextField(
                                 controller: _firstNameController,
                                 decoration: InputDecoration(
-                                  prefixIcon:
-                                      const Icon(Icons.person_outline),
+                                  prefixIcon: const Icon(Icons.person_outline),
                                   hintText: 'First Name',
                                   filled: true,
                                   fillColor: Colors.grey.shade300,
-                                  contentPadding:
-                                      const EdgeInsets.symmetric(vertical: 18),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 18,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: BorderSide.none,
@@ -250,13 +259,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               child: TextField(
                                 controller: _lastNameController,
                                 decoration: InputDecoration(
-                                  prefixIcon:
-                                      const Icon(Icons.person_outline),
+                                  prefixIcon: const Icon(Icons.person_outline),
                                   hintText: 'Last Name',
                                   filled: true,
                                   fillColor: Colors.grey.shade300,
-                                  contentPadding:
-                                      const EdgeInsets.symmetric(vertical: 18),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 18,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: BorderSide.none,
@@ -277,8 +286,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             hintText: 'Password',
                             filled: true,
                             fillColor: Colors.grey.shade300,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 18),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
@@ -296,8 +306,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             hintText: 'Confirm Password',
                             filled: true,
                             fillColor: Colors.grey.shade300,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 18),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,

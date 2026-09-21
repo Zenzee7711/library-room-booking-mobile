@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 // Pickers
 import 'package:image_picker/image_picker.dart'; // Android branch
-import 'package:file_picker/file_picker.dart';   // iOS/Web/Desktop branch
+import 'package:file_picker/file_picker.dart'; // iOS/Web/Desktop branch
 
 import 'staff_dashboard.dart';
 import 'staff_history.dart';
@@ -32,9 +32,9 @@ class StaffEditRoomPage extends StatefulWidget {
   final String initialDescription;
   final String imagePath;
 
-  static const kNavy  = Color(0xFF003366);
+  static const kNavy = Color(0xFF003366);
   static const kGreen = Color(0xFF1FA22A);
-  static const kRed   = Color(0xFFDA351C);
+  static const kRed = Color(0xFFDA351C);
 
   @override
   State<StaffEditRoomPage> createState() => _StaffEditRoomPageState();
@@ -55,13 +55,14 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
   // current preview image (network URL or asset path)
   late String _currentImagePath;
   bool get _isNetwork =>
-      _currentImagePath.startsWith('http://') || _currentImagePath.startsWith('https://');
+      _currentImagePath.startsWith('http://') ||
+      _currentImagePath.startsWith('https://');
 
   @override
   void initState() {
     super.initState();
     _nameCtl = TextEditingController(text: widget.initialName);
-    _capCtl  = TextEditingController(
+    _capCtl = TextEditingController(
       text: _extractDigits(widget.initialCapacity),
     );
     _descCtl = TextEditingController(text: widget.initialDescription);
@@ -81,10 +82,12 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
     _jwt = await _secure.read(key: 'jwt');
     // fetch staff first name
     try {
-      final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
-        headers: _authJson(),
-      ).timeout(const Duration(seconds: 8));
+      final resp = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/common/user_auth'),
+            headers: _authJson(),
+          )
+          .timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         if (data is Map && data['ok'] == true && data['user'] is Map) {
@@ -93,7 +96,9 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
           if (fn.isNotEmpty && mounted) setState(() => _staffName = fn);
         }
       }
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   Map<String, String> _authJson() {
@@ -132,18 +137,21 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
 
     setState(() => _saving = true);
     try {
-      final resp = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/staff/rooms/${widget.roomId}/edit'),
-        headers: _authJson(),
-        body: jsonEncode({
-          'name': name,
-          'description': desc,
-          'capacity': cap, // <- backend expects this now
-        }),
-      ).timeout(const Duration(seconds: 12));
+      final resp = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/staff/rooms/${widget.roomId}/edit'),
+            headers: _authJson(),
+            body: jsonEncode({
+              'name': name,
+              'description': desc,
+              'capacity': cap, // <- backend expects this now
+            }),
+          )
+          .timeout(const Duration(seconds: 12));
 
       if (resp.statusCode == 200) {
-        await _showSuccessThenBack(context);
+        if (!mounted) return;
+        await _showSuccessThenBack();
       } else {
         String msg = 'Save failed';
         try {
@@ -171,16 +179,31 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
       if (kIsWeb) {
         // Web → file_picker with bytes
         final res = await FilePicker.platform.pickFiles(
-          allowMultiple: false, type: FileType.image, withData: true);
-        if (res == null || res.files.isEmpty || res.files.single.bytes == null) return;
-        await _uploadBytesAndSet(res.files.single.name, res.files.single.bytes!);
+          allowMultiple: false,
+          type: FileType.image,
+          withData: true,
+        );
+        if (res == null ||
+            res.files.isEmpty ||
+            res.files.single.bytes == null) {
+          return;
+        }
+        await _uploadBytesAndSet(
+          res.files.single.name,
+          res.files.single.bytes!,
+        );
         return;
       }
 
-      if (Platform.isIOS || Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      if (Platform.isIOS ||
+          Platform.isMacOS ||
+          Platform.isWindows ||
+          Platform.isLinux) {
         // iOS/Desktop → file_picker (more reliable than image_picker channel on iOS)
         final res = await FilePicker.platform.pickFiles(
-          allowMultiple: false, type: FileType.image);
+          allowMultiple: false,
+          type: FileType.image,
+        );
         if (res == null || res.files.isEmpty) return;
 
         final file = res.files.single;
@@ -198,7 +221,9 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
         // Android → image_picker
         final picker = ImagePicker();
         final XFile? picked = await picker.pickImage(
-          source: ImageSource.gallery, imageQuality: 92);
+          source: ImageSource.gallery,
+          imageQuality: 92,
+        );
         if (picked == null) return;
         await _uploadFilePathAndSet(picked.path);
         return;
@@ -212,7 +237,9 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
 
   Future<void> _uploadFilePathAndSet(String path) async {
     final req = http.MultipartRequest(
-      'POST', Uri.parse('${ApiConfig.baseUrl}/rooms/${widget.roomId}/image'));
+      'POST',
+      Uri.parse('${ApiConfig.baseUrl}/rooms/${widget.roomId}/image'),
+    );
     req.headers.addAll(_authMultipart());
     req.files.add(await http.MultipartFile.fromPath('image', path));
 
@@ -222,7 +249,9 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       if (data is Map && data['ok'] == true && data['url'] is String) {
-        setState(() => _currentImagePath = ApiConfig.resolveUrl(data['url'] as String));
+        setState(
+          () => _currentImagePath = ApiConfig.resolveUrl(data['url'] as String),
+        );
         _toast('Image updated');
       } else {
         _toast('Upload succeeded but response invalid');
@@ -234,9 +263,13 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
 
   Future<void> _uploadBytesAndSet(String filename, List<int> bytes) async {
     final req = http.MultipartRequest(
-      'POST', Uri.parse('${ApiConfig.baseUrl}/rooms/${widget.roomId}/image'));
+      'POST',
+      Uri.parse('${ApiConfig.baseUrl}/rooms/${widget.roomId}/image'),
+    );
     req.headers.addAll(_authMultipart());
-    req.files.add(http.MultipartFile.fromBytes('image', bytes, filename: filename));
+    req.files.add(
+      http.MultipartFile.fromBytes('image', bytes, filename: filename),
+    );
 
     final streamed = await req.send().timeout(const Duration(seconds: 20));
     final resp = await http.Response.fromStream(streamed);
@@ -244,7 +277,9 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       if (data is Map && data['ok'] == true && data['url'] is String) {
-        setState(() => _currentImagePath = ApiConfig.resolveUrl(data['url'] as String));
+        setState(
+          () => _currentImagePath = ApiConfig.resolveUrl(data['url'] as String),
+        );
         _toast('Image updated');
       } else {
         _toast('Upload succeeded but response invalid');
@@ -270,7 +305,13 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
           decoration: BoxDecoration(
             color: Colors.black87,
             borderRadius: BorderRadius.circular(28),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3))],
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -280,12 +321,22 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
                 onPressed: () => Navigator.maybePop(context),
               ),
               IconButton(
-                icon: const Icon(Icons.home_filled, color: Colors.white, size: 28),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffDashboard())),
+                icon: const Icon(
+                  Icons.home_filled,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StaffDashboard()),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.calendar_today, color: Colors.white),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffHistory())),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StaffHistory()),
+                ),
               ),
             ],
           ),
@@ -298,7 +349,10 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
           Container(
             decoration: const BoxDecoration(
               color: StaffEditRoomPage.kNavy,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
               border: Border(bottom: BorderSide(color: Colors.black, width: 2)),
             ),
             width: double.infinity,
@@ -315,22 +369,40 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text.rich(TextSpan(children: [
-                            const TextSpan(
-                              text: 'Hi, ',
-                              style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
+                          Text.rich(
                             TextSpan(
-                              text: _staffName, // Aj.Firstname
-                              style: const TextStyle(fontSize: 28, color: Colors.white),
+                              children: [
+                                const TextSpan(
+                                  text: 'Hi, ',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: _staffName, // Aj.Firstname
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ])),
-                          const Text('Edit the Room', style: TextStyle(fontSize: 25, color: Colors.white)),
+                          ),
+                          const Text(
+                            'Edit the Room',
+                            style: TextStyle(fontSize: 25, color: Colors.white),
+                          ),
                         ],
                       ),
                       IconButton(
                         onPressed: () => showLogoutDialog(context),
-                        icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 40),
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
                       ),
                     ],
                   ),
@@ -349,7 +421,13 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
@@ -362,24 +440,41 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFD9D9D9),
                           borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
                             _isNetwork
-                                ? Image.network(_currentImagePath, fit: BoxFit.cover)
-                                : Image.asset(_currentImagePath, fit: BoxFit.cover),
+                                ? Image.network(
+                                    _currentImagePath,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.asset(
+                                    _currentImagePath,
+                                    fit: BoxFit.cover,
+                                  ),
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: InkWell(
                                 onTap: _uploading ? null : _pickAndUploadImage,
                                 child: Container(
                                   color: Colors.white70,
-                                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 12,
+                                  ),
                                   child: Text(
-                                    _uploading ? 'Uploading...' : 'Change image',
+                                    _uploading
+                                        ? 'Uploading...'
+                                        : 'Change image',
                                     style: const TextStyle(
                                       color: Color(0xFF4A90E2),
                                       decoration: TextDecoration.underline,
@@ -421,22 +516,37 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: StaffEditRoomPage.kGreen,
                               shape: const StadiumBorder(),
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                                vertical: 12,
+                              ),
                             ),
                             onPressed: _saving ? null : _save,
                             child: Text(
                               _saving ? 'Saving...' : 'Save',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: StaffEditRoomPage.kRed,
                               shape: const StadiumBorder(),
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                                vertical: 12,
+                              ),
                             ),
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -452,9 +562,12 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
   }
 
   static Widget _label(String t) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Align(alignment: Alignment.centerLeft, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600))),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600)),
+    ),
+  );
 
   // TextField styled like your grey boxes
   static Widget _greyField({
@@ -465,7 +578,10 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
     String? hint,
   }) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFFD9D9D9), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD9D9D9),
+        borderRadius: BorderRadius.circular(12),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: TextField(
         controller: controller,
@@ -475,13 +591,16 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 12,
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _showSuccessThenBack(BuildContext context) async {
+  Future<void> _showSuccessThenBack() async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -495,7 +614,11 @@ class _StaffEditRoomPageState extends State<StaffEditRoomPage> {
             children: [
               Icon(Icons.check_circle, size: 120, color: Color(0xFF1FA22A)),
               SizedBox(height: 12),
-              Text('Room edited successfully', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+              Text(
+                'Room edited successfully',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
