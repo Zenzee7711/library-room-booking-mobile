@@ -79,6 +79,9 @@ One sign-in screen serves all three roles. Which home screen it opens comes from
 the `role` the API reports for the account, so the student above and the staff
 member beside them are the same build of the same app.
 
+The screens were drawn in Figma before they were built — the design file is
+public: **[Room reservation, mobile](https://www.figma.com/design/xpSLiNwVdOAVtAKIuVl4qk/Room-reservation)**.
+
 ## How it works
 
 Two processes, and only one of them ever touches the database:
