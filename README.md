@@ -11,11 +11,25 @@ The repository holds both halves of the system:
 | `app/`    | Flutter client for Android and iOS                               |
 | `server/` | Node.js and Express REST API with JWT auth, backed by MySQL      |
 
+<p align="center">
+  <img src="docs/hero.webp" width="840"
+       alt="The app running on two phones, beside the browser-based version of the same system on a laptop">
+</p>
+
+<p align="center">
+  <sub>The Flutter client on the right. The same booking model also exists as a
+  web app, in
+  <a href="https://github.com/Zenzee7711/library-room-reservation-web">library-room-reservation-web</a>.</sub>
+</p>
+
 ## Contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
+- [How it works](#how-it-works)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
+- [Database](#database)
 - [Getting started](#getting-started)
 - [API reference](#api-reference)
 - [Security notes](#security-notes)
@@ -45,6 +59,60 @@ The repository holds both halves of the system:
 - Take rooms offline and back online, blocked while a room still has active
   bookings
 - Read-only view of every pending and decided booking
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screen-welcome.webp" width="252"
+       alt="Welcome screen with sign in and sign up buttons">
+  <img src="docs/screen-student.webp" width="252"
+       alt="Student screen: a date picker, room type filters, and a carousel of room cards, one marked fully booked for today">
+  <img src="docs/screen-staff.webp" width="252"
+       alt="Staff screen: a list of rooms with capacity and status, each with an edit button and a button to take the room offline">
+</p>
+
+<p align="center">
+  <sub>Welcome &nbsp;&middot;&nbsp; student booking &nbsp;&middot;&nbsp; staff room management</sub>
+</p>
+
+One sign-in screen serves all three roles. Which home screen it opens comes from
+the `role` the API reports for the account, so the student above and the staff
+member beside them are the same build of the same app.
+
+## How it works
+
+Two processes, and only one of them ever touches the database:
+
+```
+Flutter app  (app/)
+  |      JSON over HTTP, Authorization: Bearer <token>
+  v
+Express API  (server/src/app.js)
+  |-- middleware/auth.js     verifies the JWT, puts the user id and role on the request
+  |-- route modules          role check, then JSON in and JSON out
+  v
+mysql2 connection pool  (server/src/config/db.js)
+  |
+  v
+MySQL   library_room_booking
+```
+
+The app holds no database credentials and contains no SQL. It knows a single
+host, `ApiConfig.baseUrl` in `app/lib/config/api_config.dart`, and a token;
+everything else arrives as JSON. That split is what lets one build run against
+an emulator, a simulator or a phone on the local network without editing any
+screen's source.
+
+Signing in sends the email and password once. The API verifies them against the
+argon2id hash in `users.password` and returns a JWT carrying the user id and
+role, good for seven days. The app keeps it in `flutter_secure_storage` and
+attaches it to every later request, so the password is never stored on the
+device, and the identity a booking is filed under is read from the token rather
+than from the request body.
+
+Room photos follow the same rule. The API returns a relative path such as
+`/uploads/room.jpg` and the app expands it against the same base URL through
+`ApiConfig.resolveUrl`, so no host name is ever baked into a database row.
 
 ## Tech stack
 
@@ -93,6 +161,88 @@ server/database/
 ├── schema.sql                Tables, keys and foreign keys
 └── seed.sql                  Demo rooms and time slots
 ```
+
+## Database
+
+MySQL, four tables. Only `booking` carries foreign keys: it is the junction that
+ties a person, a room and a time of day to a date.
+
+<p align="center">
+  <img src="docs/erd.png" width="900"
+       alt="Entity relationship diagram. The booking table references users twice, once for the requester and once for the approver, plus room and time_slot">
+</p>
+
+### What each table holds
+
+| Table       | One row is                      | Worth knowing                                                                                         |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `users`     | an account                      | `email` is unique; `role` is `student`, `lecturer` or `staff`, and decides what the account can reach     |
+| `room`      | a bookable room                 | `room_status` is 1 for bookable, 0 for taken offline by staff; `image` holds a filename, not a path       |
+| `time_slot` | one of the fixed daily periods  | seeded with four: 08-10, 10-12, 13-15, 15-17. A slot belongs to the day, not to any particular room      |
+| `booking`   | one request for a room and slot | carries the status, the stated objective, the deciding lecturer and, on a rejection, the reason           |
+
+### How they link
+
+`room` and `time_slot` never reference one another. Every room is bookable in
+every slot, so the grid each screen draws is simply their cross product,
+`room` by `time_slot`, and a row in `booking` is what claims one cell of that
+grid for one date.
+
+- `booking.user_id` to `users.user_id` - who asked.
+- `booking.room_id` to `room.room_id` - which room.
+- `booking.slot_id` to `time_slot.slot_id` - which period of the day.
+- `booking.approver_id` to `users.user_id` - the lecturer who decided it, `NULL`
+  while the request is still `Waiting`. This is a second foreign key into
+  `users`, which is why the diagram draws two lines between the same pair of
+  tables.
+
+A reservation is therefore identified by `(room_id, slot_id, booking_date)`, and
+`booking_status` says whether the row actually holds that cell: it starts
+`Waiting` and a lecturer moves it to `Approved` or `Rejected`, filling in
+`reason` when rejecting so the student is told why. The composite index
+`idx_booking_room_slot_date` exists for exactly that lookup, because almost
+every screen performs it.
+
+Nothing is ever deleted. A room goes offline through `room_status` instead of a
+`DELETE`, so an old booking still resolves to a real room long after that room
+stops being bookable.
+
+### Working out what is free
+
+`GET /common/rooms/availability?date=YYYY-MM-DD` runs three small queries in
+parallel rather than one joined query, and assembles the grid in JavaScript:
+
+```sql
+SELECT room_id, room_name, room_status, description, image, capacity
+  FROM room ORDER BY room_name;
+
+SELECT slot_id, start_time, end_time FROM time_slot ORDER BY slot_id;
+
+SELECT room_id, slot_id, booking_status
+  FROM booking
+ WHERE booking_date = ? AND booking_status IN ('Waiting', 'Approved');
+```
+
+Only live bookings come back from the third query, so a rejected request leaves
+no mark on the grid. Each cell is then resolved in order: a room with
+`room_status = 0` reads *disabled* whatever its bookings say; otherwise a
+`Waiting` booking reads *pending* and an `Approved` one *reserved*; a slot whose
+start time has already gone by, on today's date only, reads *passed*; anything
+left reads *available*.
+
+Because the date is a parameter rather than `CURDATE()`, this one endpoint also
+serves the date picker at the top of the student screen.
+
+Two rules are checked again when a request is actually submitted, since the grid
+the app is holding may be seconds out of date:
+
+1. the `(room, slot, date)` cell must not already hold a `Waiting` or `Approved`
+   booking, and
+2. the student must not already have an active booking that day, one room per
+   student per day.
+
+Both are checks rather than database constraints, which is the race noted under
+[Known limitations](#known-limitations).
 
 ## Getting started
 
